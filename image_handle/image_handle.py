@@ -8,6 +8,7 @@ import torch
 import numpy
 from PIL import Image
 from pathlib import Path
+from enum import Enum
 
 ## 当前python绝对路径
 THIS_FILE = Path(__file__).resolve()
@@ -18,15 +19,26 @@ DEFAULT_PICTURE_PATH: str = os.path.join(PROJECT_ROOT, "train_image")
 ## 默认归一化:硬数值归一值
 DEFAULT_NORMALIZATION: int = 255
 
+"""图像类型枚举"""
+class Image_Kind(Enum):
+    RGBNormal = 0
+    Gray = 1
+
 class Image_Handle:
     """目前看起来图形库好像不需要什么属性"""
     def __init__(self):
         pass
 
-    """返回读取文件灰度图矩阵"""
-    def load_training_gray_image(file_name: str, device: torch.device) -> torch.tensor:
-        image = Image.open(os.path.join(DEFAULT_PICTURE_PATH, file_name)).convert("L")
-        ## 灰度图先转换为数组才能给torch.tensor处理
+    """返回读取文件矩阵"""
+    def load_training_gray_image(file_name: str, device: torch.device, kind: Image_Kind) -> torch.tensor:
+        image: Image
+        ## 感觉类型先判断转化类型
+        if kind == Image_Kind.RGBNormal:
+            image = Image.open(os.path.join(DEFAULT_PICTURE_PATH, file_name))
+        elif kind == Image_Kind.Gray:
+             image = Image.open(os.path.join(DEFAULT_PICTURE_PATH, file_name)).convert("L")
+             
+        ## 先转换为数组才能给torch.tensor处理
         image_numpy = numpy.array(image)
         image_tensor = torch.tensor(image_numpy, dtype=torch.float32)/DEFAULT_NORMALIZATION
         ## 搬运数据到设备上
